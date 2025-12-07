@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vuln Tagger</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 10px;
+        width: 360px;
+        background: #f5f5f7;
+        font-size: 12px;
+      }
+      h2 {
+        font-size: 16px;
+        margin: 0;
+      }
+      h3 {
+        font-size: 13px;
+        margin: 8px 0 4px 0;
+      }
+      #top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+      }
+      #actions-left {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      #select-element {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: none;
+        background: #2563eb;
+        color: white;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      #select-element:hover {
+        background: #1d4ed8;
+      }
+
+      /* Toggle switch */
+      .toggle-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 34px;
+        height: 18px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #d1d5db;
+        transition: .2s;
+        border-radius: 999px;
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: .2s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: #22c55e;
+      }
+      input:checked + .slider:before {
+        transform: translateX(16px);
+      }
+
+      /* Project panel */
+      #project-panel {
+        background: #e5e7eb;
+        border-radius: 8px;
+        padding: 6px;
+        margin-bottom: 8px;
+      }
+      #project-current {
+        font-size: 11px;
+        margin-bottom: 4px;
+      }
+      #project-key-display {
+        font-family: monospace;
+        font-size: 11px;
+        padding: 4px;
+        background: #f9fafb;
+        border-radius: 4px;
+        word-break: break-all;
+        margin-bottom: 4px;
+      }
+      .project-actions {
+        display: flex;
+        gap: 4px;
+        margin-top: 4px;
+        flex-wrap: wrap;
+      }
+      .btn-tiny {
+        padding: 3px 6px;
+        border-radius: 4px;
+        border: none;
+        font-size: 11px;
+        cursor: pointer;
+        background: #d4d4d8;
+      }
+      .btn-tiny.primary {
+        background: #2563eb;
+        color: white;
+      }
+
+      .project-form {
+        margin-top: 6px;
+        padding-top: 4px;
+        border-top: 1px solid #d4d4d8;
+      }
+      .project-form label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .project-form input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 4px;
+        border-radius: 4px;
+        border: 1px solid #d4d4d8;
+        margin-bottom: 4px;
+        font-size: 11px;
+      }
+
+      /* Vuln list */
+      #vuln-list {
+        max-height: 320px;
+        overflow-y: auto;
+        margin-top: 4px;
+      }
+      .vuln-card {
+        border-radius: 8px;
+        padding: 8px;
+        margin-bottom: 8px;
+        font-size: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        cursor: pointer;
+      }
+      .severity-high { background: #fee2e2; border-left: 4px solid #ef4444; }
+      .severity-medium { background: #fef9c3; border-left: 4px solid #eab308; }
+      .severity-low { background: #dcfce7; border-left: 4px solid #16a34a; }
+
+      .vuln-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .vuln-title {
+        font-weight: 600;
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 999px;
+        font-size: 10px;
+        margin-left: 4px;
+        background: rgba(0,0,0,0.06);
+      }
+      .badge-status { background: #e5e7eb; }
+      .badge-type { background: #dbeafe; }
+      .badge-severity-high { background: #fecaca; }
+      .badge-severity-medium { background: #fde68a; }
+      .badge-severity-low { background: #bbf7d0; }
+      .chevron {
+        font-size: 12px;
+        margin-left: 4px;
+      }
+      .vuln-body {
+        margin-top: 6px;
+        display: none;
+      }
+      .vuln-body.open {
+        display: block;
+      }
+      .field-label {
+        font-weight: 600;
+        margin-top: 4px;
+        margin-bottom: 2px;
+      }
+      .vt-input,
+      .vt-textarea,
+      .vt-select {
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 11px;
+        padding: 4px;
+        border-radius: 4px;
+        border: 1px solid #d4d4d8;
+        margin-bottom: 4px;
+      }
+      .vt-textarea {
+        min-height: 40px;
+        resize: vertical;
+      }
+      .vuln-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 4px;
+        gap: 4px;
+      }
+      .btn-small {
+        padding: 3px 8px;
+        font-size: 11px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+      }
+      .btn-save {
+        background: #16a34a;
+        color: white;
+      }
+      .btn-save:hover {
+        background: #15803d;
+      }
+      .empty-state {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="top-bar">
+      <div id="actions-left">
+        <h2>Vuln Tagger - ash</h2>
+        <button id="select-element">Report bug</button>
+      </div>
+      <div class="toggle-wrapper">
+        <span>Highlights</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle-highlights" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Project section -->
+    <div id="project-panel">
+      <div id="project-current">
+        Project: <span id="project-name-display">No project selected</span>
+      </div>
+      <div id="project-key-display" style="display:none;"></div>
+      <div class="project-actions">
+        <button class="btn-tiny primary" id="btn-show-create">Create project</button>
+        <button class="btn-tiny" id="btn-show-existing">Existing project</button>
+        <button class="btn-tiny" id="btn-copy-key">Copy key</button>
+      </div>
+
+      <!-- Create project form -->
+      <div id="create-project-form" class="project-form" style="display:none;">
+        <label>Project name</label>
+        <input type="text" id="create-project-name" placeholder="e.g. ACME Prod App" />
+        <button class="btn-tiny primary" id="btn-create-project">Create</button>
+      </div>
+
+      <!-- Existing project form -->
+      <div id="existing-project-form" class="project-form" style="display:none;">
+        <label>Project key</label>
+        <input type="text" id="existing-project-key" placeholder="Paste shared project key" />
+        <button class="btn-tiny primary" id="btn-join-project">Join</button>
+      </div>
+    </div>
+
+    <div id="vuln-list">
+      <div class="empty-state">No vulnerabilities tagged on this page yet.</div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

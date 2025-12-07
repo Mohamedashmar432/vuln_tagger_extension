@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Vuln Tagger",
+  "version": "0.2",
+  "description": "Pin security vulnerabilities directly to DOM elements in web apps.",
+  "icons": {
+    "128": "icon128.png"
+  },
+  "permissions": [
+    "storage",
+    "scripting",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Vuln Tagger"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
